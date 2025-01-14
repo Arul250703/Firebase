@@ -1,17 +1,14 @@
-import {FirebaseApp, initializeApp} from 'firebase/app';
-import {getAuth} from 'firebase/auth';
-import {getFirestore} from 'firebase/firestore';
-
+import Firebase from 'firebase'
+import { initializeApp } from 'firebase/app';
 const firebaseConfig = {
-  apiKey: '5',
-  authDomain: 'ses',
-  projectId: 'ses',
-  storageBucket: 'sesiapp',
-  messagingSenderId: '41179',
-  appId: '1:417241851180116e',
+  apiKey: "AIzaSyDqWQkjJENozE0rJWXRUlHIyQuYZqgBT9M",
+  authDomain: "crud-f88da.firebaseapp.com",
+  projectId: "crud-f88da",
+  storageBucket: "crud-f88da.firebasestorage.app",
+  messagingSenderId: "9253401065",
+  appId: "1:9253401065:web:e86baa8dc3e590d4aa1b78"
 };
 
-const app: FirebaseApp = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
-export const firestore = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+export default app;

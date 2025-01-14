@@ -1,249 +1,97 @@
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  Alert,
-  TextInput,
-} from 'react-native';
-import React, {useEffect, useState} from 'react';
-import TodoItem from '../components/TodoItem';
-import {
-  addTodo,
-  deleteData,
-  fetchData,
-  updateCompleted,
-} from '../firebase/firestore';
+import React, { useState } from 'react';
+import { View, Text, TextInput, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
 
-const HomeScreen = () => {
-  const [todos, setTodos] = useState<any>([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
+const HomeScreen = ({ navigation }: any) => {
+  const [search, setSearch] = useState('');
+  const [foods, setFoods] = useState([
+    { id: '1', name: 'Nasi Goreng', image: 'https://i.pinimg.com/474x/8e/3e/f5/8e3ef5742d9d7334acb03872f239db20.jpg' },
+    { id: '2', name: 'Mie Ayam', image: 'https://i.pinimg.com/474x/6c/9c/fb/6c9cfbda40f0d15572fb59e4ad30965e.jpg' },
+    { id: '3', name: 'Bakso', image: 'https://i.pinimg.com/474x/f7/6c/93/f76c93a3a23c2666e107ada4c4f33aec.jpg' },
+    { id: '4', name: 'Nasi Padang', image: 'https://i.pinimg.com/474x/4b/94/68/4b94680222487b212836a9e2e5e3a541.jpg' },
+    { id: '5', name: 'Ayam Bakar', image: 'https://i.pinimg.com/474x/80/3c/bc/803cbcabba9e4f43b52ea660ac726b90.jpg' },
+    { id: '6', name: 'jus mangga', image: 'https://i.pinimg.com/474x/f6/39/ea/f639eaaef2d049dfc8c7a9beba5aaf60.jpg' },
 
-  const loadTodos = async () => {
-    try {
-      const result = await fetchData();
-      console.log(result);
-      setTodos(result);
-    } catch (error) {
-      console.error('Error loading todos:', error);
-    }
-  };
+  ]);
 
-  useEffect(() => {
-    loadTodos();
-  }, []);
+  const filteredFoods = foods.filter((food) => food.name.toLowerCase().includes(search.toLowerCase()));
 
-  const handleAddTodo = async () => {
-    if (!title.trim()) {
-      Alert.alert('Error', 'Judul tugas tidak boleh kosong');
-      return;
-    }
-
-    try {
-      await addTodo(title, description);
-      loadTodos();
-      setTitle('');
-      setDescription('');
-      setModalVisible(false);
-    } catch (error) {
-      console.error('Error adding todo:', error);
-      Alert.alert('Error', 'Gagal menambahkan tugas');
-    }
-  };
-
-  const handleDeleteTodo = async (id: string) => {
-    try {
-      await deleteData(id);
-      loadTodos();
-    } catch (error) {
-      console.error('Error deleting todo:', error);
-    }
-  };
-
-  const handleToggleComplete = async (id: string, currentStatus: boolean) => {
-    try {
-      await updateCompleted(id, currentStatus);
-      loadTodos();
-    } catch (error) {
-      console.error('Error updating todo status:', error);
-    }
-  };
+  const renderFoodItem = ({ item }: any) => (
+    <TouchableOpacity style={styles.foodItem} activeOpacity={0.8}>
+      <Image source={{ uri: item.image }} style={styles.foodImage} />
+      <Text style={styles.foodName}>{item.name}</Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <>
-      <View style={styles.container}>
-        <View
-          style={{
-            width: '100%',
-            marginBottom: 16,
-            backgroundColor: '#f8f9fa',
-            padding: 16,
-            borderRadius: 8,
-          }}>
-          <Text style={{fontSize: 24, fontWeight: 'bold', textAlign: 'center'}}>
-            Daftar Tugas ({todos.length})
-          </Text>
-        </View>
-        {todos.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Tidak ada tugas</Text>
-            <Text style={styles.emptySubtext}>
-              Tambahkan tugas baru dengan menekan tombol di bawah
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={todos}
-            keyExtractor={item => item.id.toString()}
-            renderItem={({item}) => (
-              <TodoItem
-                todo={item}
-                onDelete={() => handleDeleteTodo(item.id)}
-                onToggleComplete={() =>
-                  handleToggleComplete(item.id, item.completed)
-                }
-              />
-            )}
-          />
-        )}
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setModalVisible(true)}>
-          <Text style={styles.addButtonText}>+ Tambah Tugas</Text>
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>DAFTAR MENU</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Cari Makanan..."
+          value={search}
+          onChangeText={setSearch}
+        />
       </View>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          console.log('Modal closed');
-        }}>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}></View>
 
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'white',
-            paddingHorizontal: 14,
-            paddingVertical: 16,
-          }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              marginBottom: 16,
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-            <Text style={{fontSize: 24, fontWeight: 'bold'}}>Tambah Tugas</Text>
-            <TouchableOpacity
-              style={{
-                borderRadius: 8,
-                alignItems: 'center',
-              }}
-              onPress={() => setModalVisible(false)}>
-              <Text style={{color: 'white', fontWeight: 'bold', fontSize: 16}}>
-                ❌
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <Text
-            style={{
-              marginBottom: 8,
-              color: '#6c757d',
-            }}>
-            Judul
-          </Text>
-          <TextInput
-            style={{
-              borderWidth: 1,
-              borderColor: '#ced4da',
-              borderRadius: 4,
-              padding: 10,
-              marginBottom: 12,
-            }}
-            value={title}
-            onChangeText={text => setTitle(text)}
-          />
-          <Text
-            style={{
-              marginBottom: 8,
-              color: '#6c757d',
-            }}>
-            Deskripsi
-          </Text>
-          <TextInput
-            style={{
-              borderWidth: 1,
-              borderColor: '#ced4da',
-              borderRadius: 4,
-              padding: 10,
-              marginBottom: 12,
-            }}
-            value={description}
-            onChangeText={text => setDescription(text)}
-          />
-
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#28a745',
-              padding: 16,
-              borderRadius: 8,
-              alignItems: 'center',
-              marginTop: 16,
-            }}
-            onPress={handleAddTodo}>
-            <Text style={{color: 'white', fontWeight: 'bold', fontSize: 16}}>
-              Simpan
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-    </>
+      <FlatList
+        data={filteredFoods}
+        keyExtractor={(item) => item.id}
+        renderItem={renderFoodItem}
+        numColumns={2}  // Membuat dua kolom untuk tampilan grid
+        columnWrapperStyle={styles.gridRow}  // Menambahkan padding antar kolom
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: 'white',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  container: { flex: 1, padding: 20, backgroundColor: '#f5f5f5' },
+  header: {
+    marginBottom: 20,
     alignItems: 'center',
   },
-  emptyText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#6c757d',
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FF6347',  // Warna oranye
+    marginBottom: 10,
   },
-  emptySubtext: {
-    marginTop: 8,
-    color: '#6c757d',
+  searchInput: {
+    height: 40,
+    width: '80%',
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    backgroundColor: '#fff',
   },
-  addButton: {
-    backgroundColor: '#007bff',
-    padding: 16,
-    borderRadius: 8,
+  foodItem: {
+    marginBottom: 20,
+    marginHorizontal: 10,
+    flexDirection: 'column',
     alignItems: 'center',
-    marginTop: 16,
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  addButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+  foodImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  foodName: {
     fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  gridRow: {
+    justifyContent: 'space-between',  // Memastikan item tersebar rata
   },
 });
 
